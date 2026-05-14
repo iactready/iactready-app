@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
-import { PLANS } from "@/lib/billing/plans";
+import { PLANS, type PlanId } from "@/lib/billing/plans";
 import { ManagePortalButton } from "./manage-portal-button";
 
 export const runtime = "nodejs";
@@ -32,7 +32,7 @@ export default async function BillingPage() {
     .eq("org_id", org.id)
     .maybeSingle();
 
-  const planId = sub?.plan ?? "free";
+  const planId: PlanId = ((sub?.plan as PlanId | null) ?? "free");
   const plan = PLANS[planId];
   const status = sub?.status ?? "active";
   const statusLabel = STATUS_LABEL[status] ?? status;

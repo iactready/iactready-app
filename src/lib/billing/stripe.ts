@@ -9,7 +9,7 @@ export function getStripe(): Stripe {
   }
   if (!_client) {
     _client = new Stripe(serverEnv.STRIPE_SECRET_KEY, {
-      apiVersion: "2024-12-18.acacia",
+      apiVersion: "2025-02-24.acacia",
       typescript: true,
       appInfo: { name: "iActReady", version: "0.1.0", url: "https://iactready.com" },
     });

@@ -1,0 +1,22 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/audit/route": "app/api/audit/route.js",
+  "/api/billing/checkout/route": "app/api/billing/checkout/route.js",
+  "/api/billing/portal/route": "app/api/billing/portal/route.js",
+  "/api/billing/webhook/route": "app/api/billing/webhook/route.js",
+  "/api/classify/route": "app/api/classify/route.js",
+  "/api/inventory/route": "app/api/inventory/route.js",
+  "/api/org/route": "app/api/org/route.js",
+  "/api/waitlist/route": "app/api/waitlist/route.js",
+  "/auth/callback/route": "app/auth/callback/route.js",
+  "/auth/verify-otp/route": "app/auth/verify-otp/route.js",
+  "/billing/page": "app/billing/page.js",
+  "/inventory/[id]/page": "app/inventory/[id]/page.js",
+  "/inventory/page": "app/inventory/page.js",
+  "/login/page": "app/login/page.js",
+  "/onboarding/page": "app/onboarding/page.js",
+  "/page": "app/page.js",
+  "/pricing/page": "app/pricing/page.js",
+  "/start/page": "app/start/page.js"
+}

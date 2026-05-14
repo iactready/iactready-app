@@ -1,0 +1,22 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/audit/route": "/api/audit",
+  "/api/billing/checkout/route": "/api/billing/checkout",
+  "/api/billing/portal/route": "/api/billing/portal",
+  "/api/billing/webhook/route": "/api/billing/webhook",
+  "/api/classify/route": "/api/classify",
+  "/api/inventory/route": "/api/inventory",
+  "/api/org/route": "/api/org",
+  "/api/waitlist/route": "/api/waitlist",
+  "/auth/callback/route": "/auth/callback",
+  "/auth/verify-otp/route": "/auth/verify-otp",
+  "/billing/page": "/billing",
+  "/inventory/[id]/page": "/inventory/[id]",
+  "/inventory/page": "/inventory",
+  "/login/page": "/login",
+  "/onboarding/page": "/onboarding",
+  "/page": "/",
+  "/pricing/page": "/pricing",
+  "/start/page": "/start"
+}

@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "functions": {
+    "/api/audit": {
+      "maxDuration": 60
+    },
+    "/api/billing/checkout": {},
+    "/api/billing/portal": {},
+    "/api/billing/webhook": {},
+    "/api/classify": {
+      "maxDuration": 60
+    },
+    "/api/inventory": {
+      "maxDuration": 60
+    },
+    "/api/org": {},
+    "/api/waitlist": {},
+    "/auth/callback": {},
+    "/auth/verify-otp": {},
+    "/billing": {},
+    "/inventory": {},
+    "/inventory/[id]": {}
+  }
+}

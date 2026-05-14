@@ -3,16 +3,23 @@
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
-  /* Brand palette */
-  --color-bg: #0b0b0d;
-  --color-panel: #131318;
+  /* Brand palette — warm dark academic */
+  --color-bg: #0a0a0f;
+  --color-panel: #14141c;
+  --color-panel-elevated: #1c1c26;
   --color-text: #f4f4f5;
   --color-muted: #a0a0a8;
   --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.14);
+
+  /* Accents */
+  --color-orange-500: #f97316;
+  --color-orange-400: #fb923c;
+  --color-orange-300: #fdba74;
+  --color-amber-400: #fbbf24;
 }
 
-html,
-body {
+html, body {
   margin: 0;
   padding: 0;
 }
@@ -23,5 +30,42 @@ body {
   font-family: var(--font-sans);
   font-feature-settings: "cv11", "ss01", "ss03";
   -webkit-font-smoothing: antialiased;
-  line-height: 1.5;
+  line-height: 1.55;
 }
+
+/* Subtle radial glow at top — gives hero depth */
+body::before {
+  content: "";
+  position: fixed;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1200px;
+  height: 600px;
+  background: radial-gradient(ellipse at center, rgba(249, 115, 22, 0.18) 0%, rgba(249, 115, 22, 0.06) 30%, transparent 60%);
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(40px);
+}
+
+/* Smooth scroll for anchor links */
+html { scroll-behavior: smooth; }
+
+/* Reduce motion respect */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* Custom selection */
+::selection { background: rgba(249, 115, 22, 0.3); color: #fff; }
+
+/* Fade-in animation utility */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.6s ease-out both; }
+.fade-up-delay-1 { animation: fadeUp 0.6s ease-out 0.1s both; }
+.fade-up-delay-2 { animation: fadeUp 0.6s ease-out 0.2s both; }
+.fade-up-delay-3 { animation: fadeUp 0.6s ease-out 0.3s both; }

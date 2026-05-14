@@ -4,3 +4,12 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# Extend timeout for routes that call Anthropic (classifier).
+# Netlify free plan: max 10s sync; Pro: 26s; Background: 15min.
+[functions]
+  # The Next.js plugin packs all routes into "___netlify-server-handler"
+  included_files = []
+
+[functions."___netlify-server-handler"]
+  timeout = 26

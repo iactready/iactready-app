@@ -1,30 +1,21 @@
-import { z } from "zod";
-
 /**
- * Runtime-validated environment variables.
- * Fail-fast on misconfiguration.
+ * Simple env access. Validation deferred to actual use sites.
+ * Switched from Zod due to v4 init issues on Netlify Lambda.
  */
+const FROM_FALLBACK = "hola@iactready.com";
+const APP_URL_FALLBACK = "https://iactready.com";
 
-const serverSchema = z.object({
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
-  RESEND_API_KEY: z.string().startsWith("re_").optional(),
-  RESEND_FROM_DEFAULT: z.email().default("hola@iactready.com"),
-  ANTHROPIC_API_KEY: z.string().startsWith("sk-ant-").optional(),
-  CLOUDFLARE_API_TOKEN: z.string().optional(),
-  CLOUDFLARE_ZONE_ID: z.string().optional(),
-});
+export const serverEnv = {
+  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  RESEND_FROM_DEFAULT: process.env.RESEND_FROM_DEFAULT || FROM_FALLBACK,
+  ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+  CLOUDFLARE_API_TOKEN: process.env.CLOUDFLARE_API_TOKEN,
+  CLOUDFLARE_ZONE_ID: process.env.CLOUDFLARE_ZONE_ID,
+} as const;
 
-const clientSchema = z.object({
-  NEXT_PUBLIC_SUPABASE_URL: z.url().optional(),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
-  NEXT_PUBLIC_APP_URL: z.url().default("https://iactready.com"),
-});
-
-export const serverEnv =
-  typeof window === "undefined" ? serverSchema.parse(process.env) : ({} as z.infer<typeof serverSchema>);
-
-export const clientEnv = clientSchema.parse({
+export const clientEnv = {
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-});
+  NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || APP_URL_FALLBACK,
+} as const;

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { z } from "zod";
 
 const schema = z.object({
-  email: z.string().email("Introduce un email válido"),
+  email: z.email("Introduce un email válido"),
 });
 
 type Status = "idle" | "submitting" | "success" | "error";

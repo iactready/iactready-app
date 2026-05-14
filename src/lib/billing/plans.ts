@@ -50,7 +50,7 @@ export const PLANS: Record<PlanId, PlanDef> = {
     name: "Autónomo",
     tagline: "Para autónomos y micro-empresas (1-10 personas).",
     price_eur_monthly: 29,
-    stripe_price_id: process.env.STRIPE_PRICE_AUTONOMO ?? null,
+    stripe_price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_AUTONOMO ?? null,
     features: [
       "audit",
       "view_classification",
@@ -72,7 +72,7 @@ export const PLANS: Record<PlanId, PlanDef> = {
     name: "PYME",
     tagline: "Para PYMEs (11-50 empleados).",
     price_eur_monthly: 99,
-    stripe_price_id: process.env.STRIPE_PRICE_PYME ?? null,
+    stripe_price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_PYME ?? null,
     features: [
       "audit",
       "view_classification",
@@ -96,7 +96,7 @@ export const PLANS: Record<PlanId, PlanDef> = {
     name: "Business",
     tagline: "Para empresas con compliance crítico (50-250 empleados).",
     price_eur_monthly: 299,
-    stripe_price_id: process.env.STRIPE_PRICE_BUSINESS ?? null,
+    stripe_price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_BUSINESS ?? null,
     features: [
       "audit",
       "view_classification",

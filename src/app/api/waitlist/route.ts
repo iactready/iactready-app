@@ -4,7 +4,7 @@ import { FROM_DEFAULT, getResend } from "@/lib/resend";
 import { getSupabaseAdminClient } from "@/lib/supabase/server";
 
 const schema = z.object({
-  email: z.string().email().toLowerCase().trim(),
+  email: z.email().toLowerCase().trim(),
 });
 
 export const runtime = "nodejs";

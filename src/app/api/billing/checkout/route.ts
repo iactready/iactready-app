@@ -5,7 +5,7 @@ import { getStripe, stripeConfigured } from "@/lib/billing/stripe";
 import { PLANS, type PlanId } from "@/lib/billing/plans";
 
 const schema = z.object({
-  plan: z.enum(["autonomo", "pyme", "business"]),
+  plan: z.enum(["monthly", "annual"]),
 });
 
 export const runtime = "nodejs";
@@ -13,10 +13,9 @@ export const dynamic = "force-dynamic";
 
 /**
  * POST /api/billing/checkout
- * Body: { plan: "autonomo" | "pyme" | "business" }
+ * Body: { plan: "monthly" | "annual" }
  *
- * Creates a Stripe Checkout Session for the user's org and returns the URL
- * the client should redirect to.
+ * Creates a Stripe Checkout Session for the user's Opositor subscription.
  */
 export async function POST(request: Request) {
   if (!stripeConfigured()) {
@@ -32,40 +31,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
   const parsed = schema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
-  }
+  if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+
   const planId: PlanId = parsed.data.plan;
   const plan = PLANS[planId];
   if (!plan.stripe_price_id) {
     return NextResponse.json({ error: `Plan ${planId} has no Stripe price configured` }, { status: 503 });
   }
 
-  // Need org. Subscription row auto-created by trigger.
-  const { data: org } = await sb.from("organizations").select("id, name").eq("owner_id", user.id).maybeSingle();
-  if (!org) return NextResponse.json({ error: "Complete onboarding first" }, { status: 409 });
-
+  // Load opositor subscription (auto-created on signup by trigger).
   const { data: sub } = await sb
-    .from("subscriptions")
-    .select("stripe_customer_id, stripe_subscription_id, status")
-    .eq("org_id", org.id)
+    .from("o_subscription")
+    .select("stripe_customer_id")
+    .eq("user_id", user.id)
     .maybeSingle();
 
   const stripe = getStripe();
   const origin = new URL(request.url).origin;
 
-  // Re-use existing Stripe customer if we have one (e.g. user upgrading).
+  // Re-use existing Stripe customer if we have one.
   let customerId = sub?.stripe_customer_id ?? null;
   if (!customerId) {
     const customer = await stripe.customers.create({
       email: user.email ?? undefined,
-      name: org.name,
-      metadata: { org_id: org.id, user_id: user.id },
+      metadata: { user_id: user.id, product: "iactready-opositor" },
     });
     customerId = customer.id;
-    // service_role bypasses the "no client writes" RLS policy on subscriptions
     const admin = getSupabaseAdminClient();
-    await admin.from("subscriptions").update({ stripe_customer_id: customerId }).eq("org_id", org.id);
+    await admin.from("o_subscription").update({ stripe_customer_id: customerId }).eq("user_id", user.id);
   }
 
   const session = await stripe.checkout.sessions.create({
@@ -78,8 +71,8 @@ export async function POST(request: Request) {
     automatic_tax: { enabled: true },
     customer_update: { address: "auto", name: "auto" },
     tax_id_collection: { enabled: true },
-    metadata: { org_id: org.id, plan: planId },
-    subscription_data: { metadata: { org_id: org.id, plan: planId } },
+    metadata: { user_id: user.id, plan: planId, product: "iactready-opositor" },
+    subscription_data: { metadata: { user_id: user.id, plan: planId, product: "iactready-opositor" } },
   });
 
   return NextResponse.json({ url: session.url });

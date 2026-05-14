@@ -1,110 +1,97 @@
-import { WaitlistForm } from "@/components/waitlist-form";
+import Link from "next/link";
 
-export default function HomePage() {
+export default function LandingPage() {
   return (
-    <div className="relative min-h-screen bg-[#0b0b0d] text-[#f4f4f5] grid grid-rows-[1fr_auto]">
-      {/* Background grid + glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 z-0 [background-image:linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:48px_48px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_70%)]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none fixed left-1/2 -top-[10%] z-0 h-[60vw] max-h-[700px] w-[80vw] max-w-[900px] -translate-x-1/2 [background:radial-gradient(closest-side,rgba(249,115,22,0.18),transparent_70%)]"
-      />
-
-      <main className="relative z-10 mx-auto w-full max-w-[920px] px-6 py-20">
-        <span className="inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/[0.02] px-3.5 py-2 text-sm font-bold tracking-tight text-[#a0a0a8]">
-          <span className="relative h-2 w-2 rounded-full bg-orange-500 shadow-[0_0_12px_theme(colors.orange.500)] animate-pulse" />
-          iActReady · llegando verano 2026
-        </span>
-
-        <h1 className="mt-8 mb-4 font-extrabold leading-[1.05] tracking-tight bg-gradient-to-b from-white to-[#c4c4c8] bg-clip-text text-transparent text-[clamp(36px,6vw,64px)]">
-          Cumple con el AI&nbsp;Act{" "}
-          <span className="bg-gradient-to-b from-orange-400 to-orange-500 bg-clip-text text-transparent">
-            sin contratar una consultora
-          </span>
-          .
-        </h1>
-
-        <p className="max-w-[620px] mb-10 text-[#a0a0a8] text-[clamp(17px,2vw,20px)]">
-          SaaS de compliance autoservicio para PYMEs europeas que usan inteligencia artificial.
-          Te ayudamos a <strong className="text-[#f4f4f5] font-semibold">inventariar tus sistemas IA</strong>,{" "}
-          <strong className="text-[#f4f4f5] font-semibold">generar la documentación obligatoria</strong> y{" "}
-          <strong className="text-[#f4f4f5] font-semibold">cumplir el Reglamento Europeo de IA</strong> antes del 2 de
-          agosto de 2026.
-        </p>
-
-        <section className="my-12 grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(240px,1fr))]">
-          <FeatureCard
-            icon="📋"
-            title="Inventario IA automático"
-            body="Wizard de 5 minutos que clasifica tus sistemas IA por nivel de riesgo según el AI Act."
-          />
-          <FeatureCard
-            icon="📄"
-            title="Documentación generada"
-            body="Política de uso, ficha de transparencia, plan de supervisión humana, evaluación de impacto. Exportable como PDF."
-          />
-          <FeatureCard
-            icon="🎓"
-            title="AI Literacy training"
-            body="Micro-curso obligatorio (Art. 4 AI Act) personalizado por rol, con certificado descargable por empleado."
-          />
-          <FeatureCard
-            icon="🔔"
-            title="Alertas regulatorias"
-            body="Monitorizamos AESIA, AEPD, EDPB y Comisión EU. Solo te avisamos de cambios que te afectan."
-          />
-        </section>
-
-        <section className="my-8 rounded-[20px] border border-white/10 bg-[#131318] p-7">
-          <div className="mb-4 text-xs font-semibold uppercase tracking-[0.08em] text-[#a0a0a8]">Cuenta atrás</div>
-          <div className="flex flex-wrap items-baseline gap-3 text-lg leading-snug">
-            <span className="text-[28px] font-extrabold tracking-tight text-orange-400">2 ago 2026</span>
-            <span>
-              Entrada plena del EU AI&nbsp;Act. Sanciones hasta{" "}
-              <strong className="text-[#f4f4f5]">€35M o 7% facturación</strong>.
-            </span>
+    <main className="min-h-screen">
+      <header className="px-6 py-4 border-b border-zinc-800">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">📚</span>
+            <span className="font-bold text-lg">iActReady</span>
           </div>
-        </section>
-
-        <h2 className="mt-12 mb-3 text-[22px] font-bold tracking-tight">Reserva tu plaza en la beta privada</h2>
-        <p className="mb-4 max-w-[560px] text-[#a0a0a8]">
-          Acceso anticipado, precio early-adopter y soporte 1:1 durante los primeros 3 meses. Cupos limitados a 25
-          PYMEs.
-        </p>
-
-        <WaitlistForm />
-      </main>
-
-      <footer className="relative z-10 border-t border-white/10 px-6 py-8 text-center text-sm text-[#a0a0a8]">
-        <div className="mb-2 flex flex-wrap justify-center gap-6">
-          <a href="https://linkedin.com/company/iactready" target="_blank" rel="noopener" className="hover:text-white">
-            LinkedIn
-          </a>
-          <a href="https://x.com/iactready" target="_blank" rel="noopener" className="hover:text-white">
-            X
-          </a>
-          <a href="https://github.com/iactready" target="_blank" rel="noopener" className="hover:text-white">
-            GitHub
-          </a>
-          <a href="mailto:hola@iactready.com" className="hover:text-white">
-            hola@iactready.com
-          </a>
+          <nav className="flex items-center gap-6 text-sm">
+            <Link href="/pricing" className="text-zinc-400 hover:text-zinc-100">Precios</Link>
+            <Link href="/login" className="text-zinc-400 hover:text-zinc-100">Entrar</Link>
+            <Link href="/start" className="rounded-md bg-orange-500 px-4 py-2 font-medium text-zinc-950 hover:bg-orange-400">
+              Empezar gratis
+            </Link>
+          </nav>
         </div>
-        <div>© 2026 iActReady · Datos alojados en EU · Stack 100% europeo</div>
+      </header>
+
+      <section className="px-6 py-20 max-w-5xl mx-auto text-center">
+        <div className="inline-block mb-4 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-medium text-orange-300">
+          ✨ La IA que estudia contigo
+        </div>
+        <h1 className="text-5xl md:text-6xl font-bold leading-tight">
+          Aprueba tu oposición<br />
+          <span className="text-orange-400">en la mitad de tiempo.</span>
+        </h1>
+        <p className="mt-6 text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto">
+          Plan de estudio personalizado, 20 preguntas al día con explicación, simulacros oficiales.
+          Por 1/5 del precio de una academia.
+        </p>
+        <div className="mt-10 flex items-center justify-center gap-3">
+          <Link href="/start" className="rounded-md bg-orange-500 px-6 py-3 font-medium text-zinc-950 hover:bg-orange-400">
+            Empezar gratis →
+          </Link>
+          <Link href="/pricing" className="rounded-md border border-zinc-700 px-6 py-3 font-medium text-zinc-200 hover:bg-zinc-900">
+            Ver planes
+          </Link>
+        </div>
+        <p className="mt-4 text-xs text-zinc-500">10 preguntas gratis cada día · Sin tarjeta</p>
+      </section>
+
+      <section className="px-6 py-16 border-t border-zinc-800">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+          <ValueProp icon="🎯" title="Plan adaptativo" description="Detectamos tus puntos débiles y reorganizamos tu estudio cada día. Sin estudiar de más en lo que ya dominas." />
+          <ValueProp icon="📝" title="20 preguntas diarias" description="Cada una con explicación clara: por qué es correcta la respuesta y por qué no las otras." />
+          <ValueProp icon="⏱️" title="Simulacros oficiales" description="100 preguntas cronometradas, formato del examen real. Llega listo el día D." />
+        </div>
+      </section>
+
+      <section className="px-6 py-16 border-t border-zinc-800">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl font-bold">Oposiciones soportadas</h2>
+          <p className="mt-3 text-zinc-400">Empezamos con la más demandada. Más oposiciones cada mes.</p>
+          <div className="mt-8 inline-flex flex-col gap-3">
+            <div className="rounded-lg border border-zinc-700 px-6 py-4 text-left">
+              <div className="flex items-baseline justify-between gap-8">
+                <div>
+                  <h3 className="font-semibold text-zinc-100">Auxiliar Administrativo del Estado</h3>
+                  <p className="text-xs text-zinc-500">AGE · Cuerpo General · C2 · 60 temas</p>
+                </div>
+                <span className="text-emerald-400 text-xs">✓ Disponible</span>
+              </div>
+            </div>
+            <p className="text-xs text-zinc-500 mt-2">Próximamente: Auxilio Judicial · Tramitación Justicia · Maestros · Sanidad</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-6 py-16 border-t border-zinc-800">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl font-bold">€19.99 al mes. Sin permanencia.</h2>
+          <p className="mt-3 text-zinc-400">Academia presencial: €1.500-3.000/año. iActReady: €240/año.</p>
+          <Link href="/pricing" className="mt-6 inline-block rounded-md bg-orange-500 px-6 py-3 font-medium text-zinc-950 hover:bg-orange-400">
+            Ver planes →
+          </Link>
+        </div>
+      </section>
+
+      <footer className="border-t border-zinc-800 py-8 text-center text-xs text-zinc-500">
+        © 2026 iActReady · <a href="mailto:hola@iactready.com" className="hover:text-zinc-300">hola@iactready.com</a>
       </footer>
-    </div>
+    </main>
   );
 }
 
-function FeatureCard({ icon, title, body }: { icon: string; title: string; body: string }) {
+function ValueProp({ icon, title, description }: { icon: string; title: string; description: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#131318] p-6 transition hover:-translate-y-0.5 hover:border-orange-500/30">
-      <div className="mb-3 text-2xl">{icon}</div>
-      <h3 className="mb-1.5 text-base font-semibold tracking-tight">{title}</h3>
-      <p className="text-sm text-[#a0a0a8]">{body}</p>
+    <div className="rounded-lg border border-zinc-800 p-6">
+      <div className="text-3xl">{icon}</div>
+      <h3 className="mt-3 font-semibold text-zinc-100">{title}</h3>
+      <p className="mt-2 text-sm text-zinc-400">{description}</p>
     </div>
   );
 }

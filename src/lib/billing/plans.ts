@@ -1,31 +1,29 @@
 /**
- * Subscription plans. Stripe price IDs come from env vars so we can rotate
- * test → live without code changes.
+ * Subscription plans for iActReady Opositor.
+ *
+ * Free: 10 questions/day, basic stats.
+ * Monthly €19.99: unlimited questions, mock exams, full stats.
+ * Annual €179: same as Monthly, -25% vs paying monthly.
  */
 
-export type PlanId = "free" | "autonomo" | "pyme" | "business";
+export type PlanId = "free" | "monthly" | "annual";
 
 export type FeatureId =
-  | "audit"                  // run the conversational audit
-  | "view_classification"    // see risk tiers + reasoning
-  | "download_docs"          // export PDF/DOCX of obligations
-  | "regulatory_alerts"      // weekly digest of EU AI Act updates
-  | "training_basic"         // single-user AI literacy course
-  | "training_tracking"      // per-employee training certificates
-  | "dpa_templates"          // DPA generator for vendors
-  | "multi_user"             // invite colleagues to the org
-  | "audit_log_export"       // CSV/JSON export of evidence trail
-  | "human_support";         // chat + 1:1 review
+  | "unlimited_questions"   // remove the daily cap
+  | "mock_exams"            // weekly 100-question simulacros
+  | "full_stats"            // per-topic, streak, time-spent charts
+  | "explanations"          // AI explanations of correct + incorrect answers
+  | "adaptive_plan";        // study plan that re-prioritizes weak topics
 
 export interface PlanDef {
   id: PlanId;
   name: string;
   tagline: string;
-  price_eur_monthly: number;
-  /** Stripe Price ID for the monthly recurring subscription. */
+  price_eur: number;
+  /** "month" or "year" — used in the UI suffix. */
+  interval: "month" | "year" | "trial";
   stripe_price_id: string | null;
   features: FeatureId[];
-  /** UI-only: short bullets shown on the pricing page. */
   bullets: string[];
   highlight?: boolean;
 }
@@ -34,87 +32,48 @@ export const PLANS: Record<PlanId, PlanDef> = {
   free: {
     id: "free",
     name: "Gratis",
-    tagline: "Audita tu negocio en 3 minutos. Mira qué obligaciones te aplican.",
-    price_eur_monthly: 0,
+    tagline: "Prueba la herramienta. Sin tarjeta.",
+    price_eur: 0,
+    interval: "trial",
     stripe_price_id: null,
-    features: ["audit", "view_classification"],
+    features: ["explanations"],
     bullets: [
-      "Auditoría IA de tu negocio",
-      "Clasificación bajo AI Act (Anexo III, Art. 5, Art. 50)",
-      "Lista de obligaciones legales que te aplican",
-      "Sin tarjeta",
+      "10 preguntas al día con explicación",
+      "Tu progreso básico",
+      "Sin tarjeta, sin compromiso",
     ],
   },
-  autonomo: {
-    id: "autonomo",
-    name: "Autónomo",
-    tagline: "Para autónomos y micro-empresas (1-10 personas).",
-    price_eur_monthly: 29,
-    stripe_price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_AUTONOMO ?? null,
-    features: [
-      "audit",
-      "view_classification",
-      "download_docs",
-      "training_basic",
-      "regulatory_alerts",
-    ],
+  monthly: {
+    id: "monthly",
+    name: "Mensual",
+    tagline: "Para opositores que estudian todos los días.",
+    price_eur: 19.99,
+    interval: "month",
+    stripe_price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY ?? null,
+    features: ["unlimited_questions", "mock_exams", "full_stats", "explanations", "adaptive_plan"],
     bullets: [
-      "Todo lo de Gratis +",
-      "Documentación legal descargable (PDF/DOCX)",
-      "Curso AI literacy + certificado individual",
-      "Alertas regulatorias semanales (AESIA, AEPD, EU)",
-      "Re-clasifica nuevas IAs ilimitadas veces",
+      "Preguntas ilimitadas",
+      "Plan de estudio personalizado adaptativo",
+      "Simulacros tipo examen oficial (100 preguntas, cronometrado)",
+      "Estadísticas por tema, racha, tiempo",
+      "Explicación de cada pregunta",
+      "Cancela cuando quieras",
     ],
     highlight: true,
   },
-  pyme: {
-    id: "pyme",
-    name: "PYME",
-    tagline: "Para PYMEs (11-50 empleados).",
-    price_eur_monthly: 99,
-    stripe_price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_PYME ?? null,
-    features: [
-      "audit",
-      "view_classification",
-      "download_docs",
-      "training_basic",
-      "training_tracking",
-      "regulatory_alerts",
-      "dpa_templates",
-      "multi_user",
-    ],
+  annual: {
+    id: "annual",
+    name: "Anual",
+    tagline: "Para los que se lo toman en serio. Ahorra 25%.",
+    price_eur: 179,
+    interval: "year",
+    stripe_price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_ANNUAL ?? null,
+    features: ["unlimited_questions", "mock_exams", "full_stats", "explanations", "adaptive_plan"],
     bullets: [
-      "Todo lo de Autónomo +",
-      "Tracking de formación por empleado (certificados)",
-      "Plantilla DPA para tus proveedores IA",
-      "Multi-usuario (invita a tu equipo)",
-      "Generador de Registro de Tratamientos (RGPD Art. 30)",
-    ],
-  },
-  business: {
-    id: "business",
-    name: "Business",
-    tagline: "Para empresas con compliance crítico (50-250 empleados).",
-    price_eur_monthly: 299,
-    stripe_price_id: process.env.NEXT_PUBLIC_STRIPE_PRICE_BUSINESS ?? null,
-    features: [
-      "audit",
-      "view_classification",
-      "download_docs",
-      "training_basic",
-      "training_tracking",
-      "regulatory_alerts",
-      "dpa_templates",
-      "multi_user",
-      "audit_log_export",
-      "human_support",
-    ],
-    bullets: [
-      "Todo lo de PYME +",
-      "Export del audit log (preparado para inspector)",
-      "Soporte humano por chat + revisión 1:1 mensual",
-      "Plantillas multi-jurisdicción (ES, PT, FR, IT, DE)",
-      "Onboarding asistido",
+      "Todo lo del plan Mensual",
+      "Equivalente a €14.92/mes (25% descuento)",
+      "Pago único anual",
+      "Compromiso con tu plaza",
     ],
   },
 };

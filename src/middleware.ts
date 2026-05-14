@@ -5,9 +5,10 @@ export async function middleware(request: NextRequest) {
   return updateSession(request);
 }
 
-// Run on all routes EXCEPT static assets, images, favicon, and the public API.
+// Skip middleware on static assets and on public/unauthenticated endpoints
+// (waitlist, classify, and the Stripe webhook which validates its own signature).
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon\\.ico|api/waitlist|api/classify|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon\\.ico|api/waitlist|api/classify|api/billing/webhook|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

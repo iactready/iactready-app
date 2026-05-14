@@ -1,6 +1,5 @@
 /**
  * Simple env access. Validation deferred to actual use sites.
- * Switched from Zod due to v4 init issues on Netlify Lambda.
  */
 const FROM_FALLBACK = "hola@iactready.com";
 const APP_URL_FALLBACK = "https://iactready.com";
@@ -12,10 +11,13 @@ export const serverEnv = {
   ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
   CLOUDFLARE_API_TOKEN: process.env.CLOUDFLARE_API_TOKEN,
   CLOUDFLARE_ZONE_ID: process.env.CLOUDFLARE_ZONE_ID,
+  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+  STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
 } as const;
 
 export const clientEnv = {
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || APP_URL_FALLBACK,
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
 } as const;

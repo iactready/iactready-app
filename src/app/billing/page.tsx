@@ -1,0 +1,108 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { PLANS } from "@/lib/billing/plans";
+import { ManagePortalButton } from "./manage-portal-button";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const STATUS_LABEL: Record<string, string> = {
+  active: "Activa",
+  trialing: "En periodo de prueba",
+  past_due: "Pago atrasado",
+  canceled: "Cancelada",
+  incomplete: "Incompleta",
+  incomplete_expired: "Caducada sin pago",
+  unpaid: "Sin pago",
+  paused: "Pausada",
+};
+
+export default async function BillingPage() {
+  const sb = await getSupabaseServerClient();
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: org } = await sb.from("organizations").select("id, name").eq("owner_id", user.id).maybeSingle();
+  if (!org) redirect("/start");
+
+  const { data: sub } = await sb
+    .from("subscriptions")
+    .select("plan, status, current_period_end, cancel_at_period_end, stripe_customer_id")
+    .eq("org_id", org.id)
+    .maybeSingle();
+
+  const planId = sub?.plan ?? "free";
+  const plan = PLANS[planId];
+  const status = sub?.status ?? "active";
+  const statusLabel = STATUS_LABEL[status] ?? status;
+  const endsAt = sub?.current_period_end ? new Date(sub.current_period_end) : null;
+  const hasStripeCustomer = !!sub?.stripe_customer_id;
+
+  return (
+    <main className="min-h-screen p-6 max-w-3xl mx-auto">
+      <Link href="/inventory" className="text-sm text-zinc-400 hover:text-zinc-200">← Volver</Link>
+      <h1 className="mt-4 text-3xl font-bold">Suscripción</h1>
+      <p className="mt-1 text-sm text-zinc-400">{org.name}</p>
+
+      <section className="mt-8 rounded-lg border border-zinc-800 p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm text-zinc-400">Plan actual</p>
+            <h2 className="mt-1 text-2xl font-semibold">{plan.name}</h2>
+            <p className="mt-1 text-sm text-zinc-400">
+              {planId === "free" ? "Gratis" : `€${plan.price_eur_monthly}/mes · ${statusLabel}`}
+            </p>
+            {endsAt && (
+              <p className="mt-2 text-xs text-zinc-500">
+                {sub?.cancel_at_period_end
+                  ? `Se cancelará el ${endsAt.toLocaleDateString("es-ES")}`
+                  : `Próxima factura: ${endsAt.toLocaleDateString("es-ES")}`}
+              </p>
+            )}
+          </div>
+
+          <div className="shrink-0">
+            {hasStripeCustomer ? (
+              <ManagePortalButton />
+            ) : (
+              <Link
+                href="/pricing"
+                className="inline-block rounded-md bg-orange-500 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-orange-400"
+              >
+                Ver planes
+              </Link>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-6">
+        <h3 className="text-sm font-semibold text-zinc-300">Qué incluye tu plan</h3>
+        <ul className="mt-3 space-y-2 text-sm text-zinc-300">
+          {plan.bullets.map((b, i) => (
+            <li key={i} className="flex gap-2">
+              <span className="text-orange-400">✓</span>
+              <span>{b}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {planId !== "business" && (
+        <section className="mt-8 rounded-lg border border-orange-500/30 bg-orange-500/5 p-5">
+          <h3 className="font-semibold text-orange-200">Sube de plan</h3>
+          <p className="mt-1 text-sm text-orange-200/80">
+            Si tu equipo crece o necesitas funcionalidades avanzadas (formación por empleado, multi-usuario, audit log exportable), cámbiate desde el portal.
+          </p>
+          <Link
+            href="/pricing"
+            className="mt-3 inline-block text-sm font-medium text-orange-300 hover:text-orange-200 underline underline-offset-2"
+          >
+            Comparar planes →
+          </Link>
+        </section>
+      )}
+    </main>
+  );
+}

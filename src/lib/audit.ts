@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { serverEnv } from "./env";
-import type { RiskTier, Obligation } from "./classifier";
+import { classifyAiSystem, type RiskTier, type Obligation, type ClassifierInput } from "./classifier";
 
 let _client: Anthropic | null = null;
 function getClient() {
@@ -23,7 +23,7 @@ export interface OrgContext {
   country: string;
 }
 
-export interface DetectedSystem {
+interface ExtractedSystem {
   name: string;
   description: string;
   category: string | null;
@@ -33,6 +33,15 @@ export interface DetectedSystem {
   affects_individuals: boolean;
   human_oversight: string | null;
   countries_of_operation: string[];
+}
+
+interface ExtractResult {
+  ai_systems: ExtractedSystem[];
+  summary: string;
+  no_systems_found_explanation: string | null;
+}
+
+export interface DetectedSystem extends ExtractedSystem {
   risk_tier: RiskTier;
   reasoning: string;
   obligations: Obligation[];
@@ -42,91 +51,75 @@ export interface DetectedSystem {
 export interface AuditResult {
   ai_systems: DetectedSystem[];
   summary: string;
-  /** Set when ai_systems is empty: explains why we did not detect AI uses. */
   no_systems_found_explanation: string | null;
 }
 
-const SYSTEM_PROMPT = `Eres un consultor experto en EU AI Act (Reglamento (UE) 2024/1689), especializado en auditar PYMEs y autónomos españoles. Tu cliente NO sabe jerga técnica.
+const EXTRACT_PROMPT = `Eres un consultor experto en EU AI Act, especializado en auditar PYMEs y autónomos españoles.
 
-Tu tarea: analizar respuestas en lenguaje natural y extraer la lista de sistemas de IA que el negocio usa REALMENTE, clasificándolos bajo el AI Act.
+Tu tarea: leer las respuestas de un cuestionario en lenguaje natural y devolver SOLO la estructura de los sistemas de IA que el negocio usa. NO clasifiques, NO listes obligaciones. Solo identifica.
 
-REGLAS DE EXTRACCIÓN:
+REGLAS:
 
-1. Identifica cada sistema de IA DISTINTO como una entrada independiente. Si el cliente menciona "uso ChatGPT para escribir correos y un chatbot en mi web", son DOS sistemas.
+1. Cada sistema de IA DISTINTO = una entrada. Si menciona "ChatGPT para descripciones y para emails", probablemente es 1 sistema (1 herramienta usada para múltiples cosas).
 
-2. NO inventes sistemas. Si el cliente dice "no uso nada de eso", no metas nada.
+2. NO inventes. Si dice "no uso nada", no metas nada.
 
-3. Software tradicional NO es IA. Excel, Word, Photoshop básico, Mailchimp básico, Stripe, contabilidad NO cuentan. Solo cuenta si hay aprendizaje automático, generación de contenido, decisiones automáticas, o reconocimiento.
+3. Software tradicional NO es IA: Excel, Word, Mailchimp básico, Stripe, contabilidad, Shopify base. Solo cuenta si hay aprendizaje automático, generación de contenido, decisiones automáticas, o reconocimiento.
 
-4. Cuando dudes, INCLUYE el sistema con flagged_concerns explicando qué hace falta confirmar. Mejor un falso positivo que dejar fuera una obligación legal.
+4. Cuando dudes, INCLUYE el sistema (mejor falso positivo que dejar fuera una obligación legal).
 
-5. Asígnale a cada sistema un nombre en CASTELLANO PLANO. NO uses jerga. USA "Asistente para redactar emails" o "Buscador inteligente de la web".
+5. Nombres en CASTELLANO PLANO. No jerga. "Asistente para escribir descripciones" en vez de "OpenAI GPT-4 inference endpoint".
 
-CLASIFICACIÓN BAJO AI ACT:
+6. \`provider\`: si el cliente nombró el servicio (ChatGPT, Claude, Canva, etc.), ponlo aquí literal. Si no, null.
 
-- prohibited (Art. 5): social scoring por administraciones, categorización biométrica por raza/religión/orientación, reconocimiento facial sin direccionar, inferencia de emociones en trabajo/escuela, identificación biométrica remota en tiempo real en espacios públicos, manipulación subliminal, predicción de criminalidad por perfilado.
-- high (Art. 6 + Anexo III): RRHH y selección (CV screening, evaluación de empleados, decisiones de despido), scoring crediticio o de seguros que afecta a acceso a servicios, educación/admisión, infraestructura crítica, fuerzas del orden, migración, justicia, biometría de identificación.
-- limited (Art. 50, transparencia): chatbots que hablan con personas, generación de contenido sintético (texto/imagen/audio/video) — deepfakes, reconocimiento de emociones no prohibido, categorización biométrica no prohibida.
-- minimal: todo lo demás (filtros antispam, recomendadores de producto sin perfilado profundo, optimización operativa interna).
-
-IMPORTANTE: El Art. 4 (alfabetización en IA) aplica SIEMPRE a TODO sistema de IA, vigente desde 2 feb 2025. Inclúyelo SIEMPRE en obligations.
-
-FORMATO DE SALIDA — JSON ESTRICTAMENTE, sin markdown, sin texto adicional:
+FORMATO — JSON ESTRICTO, sin markdown:
 
 {
   "ai_systems": [
     {
-      "name": "<nombre descriptivo en castellano plano>",
-      "description": "<2-3 frases describiendo qué hace ESTE sistema en este negocio>",
-      "category": "<categoría: generador de contenido | chatbot | recomendador | screening de personas | scoring | reconocimiento biométrico | análisis predictivo | otro>",
-      "provider": "<si el cliente mencionó proveedor, ponlo; si no, null>",
+      "name": "<en castellano plano>",
+      "description": "<1-2 frases qué hace en ESTE negocio>",
+      "category": "<generador de contenido | chatbot | recomendador | screening de personas | scoring | reconocimiento biométrico | análisis predictivo | otro>",
+      "provider": "<nombre del servicio si se mencionó, o null>",
       "in_house": false,
       "operates_on_personal_data": <true|false>,
       "affects_individuals": <true|false>,
-      "human_oversight": "<texto si el cliente lo explicó, si no null>",
-      "countries_of_operation": ["ES"],
-      "risk_tier": "prohibited" | "high" | "limited" | "minimal",
-      "reasoning": "<2 párrafos en español castellano explicando POR QUÉ esta clasificación con cita a artículos. Habla al dueño del negocio en plano.>",
-      "obligations": [
-        {"article": "Art. 4", "title": "Alfabetización en IA", "summary": "<frase concreta para ESTE negocio>", "deadline": "2 feb 2025"}
-      ],
-      "flagged_concerns": ["<preguntas o aspectos a revisar>"]
+      "human_oversight": "<si lo explicó, o null>",
+      "countries_of_operation": ["ES"]
     }
   ],
-  "summary": "<1 párrafo en castellano, 3-5 frases, resumen ejecutivo para el dueño del negocio. Habla en segunda persona. Sin jerga.>",
-  "no_systems_found_explanation": "<solo si ai_systems vacío: explica por qué. Si hay sistemas, déjalo en null>"
+  "summary": "<1 párrafo (3-5 frases) en castellano, segunda persona, sin jerga. Resumen ejecutivo de lo que tiene el negocio y qué nivel de exposición legal tiene de un vistazo.>",
+  "no_systems_found_explanation": "<solo si ai_systems vacío: explica por qué. Si hay sistemas, null>"
 }`;
 
-export async function auditBusiness(org: OrgContext, answers: InterviewAnswers): Promise<AuditResult> {
-  const userMessage = `Audita este negocio y devuelve el JSON.
+async function extractSystems(org: OrgContext, answers: InterviewAnswers): Promise<ExtractResult> {
+  const userMessage = `Extrae los sistemas de IA de este negocio. Devuelve SOLO el JSON.
 
 **Negocio**: ${org.name} (${org.country})
 
-**Pregunta 1 — ¿A qué te dedicas?**
+**P1 — ¿A qué te dedicas?**
 ${answers.business_description || "(sin responder)"}
 
-**Pregunta 2 — ¿Usas apps para crear contenido (textos, imágenes, vídeos, posts)?**
+**P2 — ¿Apps para crear contenido?**
 ${answers.content_creation.uses ? `Sí. ${answers.content_creation.details}` : "No."}
 
-**Pregunta 3 — ¿Algún programa decide cosas sobre personas en tu negocio?**
+**P3 — ¿Programas que decidan sobre personas?**
 ${answers.decisions_on_people.uses ? `Sí. ${answers.decisions_on_people.details}` : "No."}
 
-**Pregunta 4 — ¿Tienes chatbot o asistente automático que hable con clientes?**
+**P4 — ¿Chatbot con clientes?**
 ${answers.customer_chatbot.uses ? `Sí. ${answers.customer_chatbot.details}` : "No."}
 
-**Pregunta 5 — ¿Usas reconocimiento facial, biométrico o cámaras inteligentes?**
+**P5 — ¿Reconocimiento biométrico o cámaras inteligentes?**
 ${answers.biometric_or_camera.uses ? `Sí. ${answers.biometric_or_camera.details}` : "No."}
 
-**Pregunta 6 — ¿Algo más con tecnología avanzada?**
-${answers.other_advanced_tech.uses ? `Sí. ${answers.other_advanced_tech.details}` : "No."}
-
-Devuelve SOLO el JSON.`;
+**P6 — ¿Algo más con tecnología avanzada?**
+${answers.other_advanced_tech.uses ? `Sí. ${answers.other_advanced_tech.details}` : "No."}`;
 
   const client = getClient();
   const response = await client.messages.create({
     model: "claude-haiku-4-5",
-    max_tokens: 4096,
-    system: SYSTEM_PROMPT,
+    max_tokens: 2048,
+    system: EXTRACT_PROMPT,
     messages: [{ role: "user", content: userMessage }],
   });
 
@@ -137,14 +130,64 @@ Devuelve SOLO el JSON.`;
     .trim();
   const stripped = text.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
 
-  let parsed: AuditResult;
+  let parsed: ExtractResult;
   try {
-    parsed = JSON.parse(stripped) as AuditResult;
+    parsed = JSON.parse(stripped) as ExtractResult;
   } catch (err) {
-    throw new Error(`Audit returned non-JSON: ${stripped.slice(0, 300)}... (${err instanceof Error ? err.message : err})`);
+    throw new Error(`Extract returned non-JSON: ${stripped.slice(0, 300)}... (${err instanceof Error ? err.message : err})`);
   }
   if (!Array.isArray(parsed.ai_systems)) parsed.ai_systems = [];
   if (!parsed.summary) parsed.summary = "";
   if (parsed.no_systems_found_explanation === undefined) parsed.no_systems_found_explanation = null;
   return parsed;
+}
+
+/**
+ * Two-stage audit:
+ *  1) Extract the list of distinct AI systems from interview (fast call, ~5s).
+ *  2) Classify each system in parallel (each ~5-10s; total bounded by slowest).
+ *
+ * This keeps each Netlify Lambda invocation well under the 26s function timeout
+ * even when 4-6 systems are detected.
+ */
+export async function auditBusiness(org: OrgContext, answers: InterviewAnswers): Promise<AuditResult> {
+  const extract = await extractSystems(org, answers);
+
+  if (extract.ai_systems.length === 0) {
+    return {
+      ai_systems: [],
+      summary: extract.summary,
+      no_systems_found_explanation: extract.no_systems_found_explanation,
+    };
+  }
+
+  const classified = await Promise.all(
+    extract.ai_systems.map(async (s): Promise<DetectedSystem> => {
+      const input: ClassifierInput = {
+        name: s.name,
+        description: s.description,
+        category: s.category,
+        provider: s.provider,
+        in_house: s.in_house,
+        operates_on_personal_data: s.operates_on_personal_data,
+        affects_individuals: s.affects_individuals,
+        human_oversight: s.human_oversight,
+        countries_of_operation: s.countries_of_operation,
+      };
+      const result = await classifyAiSystem(input);
+      return {
+        ...s,
+        risk_tier: result.risk_tier,
+        reasoning: result.reasoning,
+        obligations: result.obligations,
+        flagged_concerns: result.flagged_concerns,
+      };
+    }),
+  );
+
+  return {
+    ai_systems: classified,
+    summary: extract.summary,
+    no_systems_found_explanation: null,
+  };
 }

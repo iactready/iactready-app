@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { DocumentsSection } from "./documents-section";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -76,6 +77,8 @@ export default async function SystemDetailPage({ params }: { params: Promise<{ i
           </ul>
         </section>
       )}
+
+      <DocumentsSection systemId={id} />
     </main>
   );
 }

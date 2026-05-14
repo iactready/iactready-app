@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseAdminClient, getSupabaseServerClient } from "@/lib/supabase/server";
 import { getStripe, stripeConfigured } from "@/lib/billing/stripe";
 import { PLANS, type PlanId } from "@/lib/billing/plans";
 
@@ -63,7 +63,9 @@ export async function POST(request: Request) {
       metadata: { org_id: org.id, user_id: user.id },
     });
     customerId = customer.id;
-    await sb.from("subscriptions").update({ stripe_customer_id: customerId }).eq("org_id", org.id);
+    // service_role bypasses the "no client writes" RLS policy on subscriptions
+    const admin = getSupabaseAdminClient();
+    await admin.from("subscriptions").update({ stripe_customer_id: customerId }).eq("org_id", org.id);
   }
 
   const session = await stripe.checkout.sessions.create({

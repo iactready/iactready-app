@@ -1,0 +1,9 @@
+node_modules
+.next
+.git
+.netlify
+.netlify_id
+.env*
+*.md
+README.md
+deno.lock
